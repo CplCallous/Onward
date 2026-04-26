@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Onward Productivity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&family=Indie+Flower&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #090613; --sidebar: #161025; --accent: #9D72FF; --text: #E0D7FF; --glass: rgba(157, 114, 255, 0.1);
+        }
+        * { box-sizing: border-box; cursor: default; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; transition: background 0.5s ease; }
+        
+        /* Navigation */
+        nav { width: 80px; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; padding: 30px 0; border-right: 1px solid #2D1B4E; z-index: 10; }
+        .nav-item { margin: 20px 0; cursor: pointer; transition: 0.3s; opacity: 0.4; font-size: 1.6rem; }
+        .nav-item:hover, .nav-item.active { opacity: 1; color: var(--accent); transform: scale(1.1); cursor: pointer; }
+
+        /* Main Area */
+        main { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
+        .section { display: none; max-width: 900px; margin: 0 auto; }
+        .section.active-view { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+        /* Aesthetic UI */
+        .glass-card { background: rgba(22, 16, 37, 0.6); backdrop-filter: blur(20px); border-radius: 24px; padding: 30px; border: 1px solid var(--glass); box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin-bottom: 25px; }
+        .btn { background: var(--accent); color: white; border: none; padding: 12px 28px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.3s; border: 1px solid transparent; }
+        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 25px rgba(157, 114, 255, 0.5); transform: translateY(-2px); }
+        input, textarea { background: rgba(0,0,0,0.3); border: 1px solid var(--glass); color: white; border-radius: 10px; padding: 12px; outline: none; }
+        input:focus { border-color: var(--accent); }
+
+        /* Specific Features */
+        #header-clock { font-size: 1.5rem; font-weight: 200; text-align: right; margin-bottom: 40px; opacity: 0.8; }
+        .timer-display { font-size: 9rem; font-weight: 200; letter-spacing: -5px; margin: 20px 0; }
+        .diary-textarea { font-family: 'Indie Flower', cursive; font-size: 1.8rem; width: 100%; height: 400px; resize: none; background: transparent; border: none; line-height: 1.6; }
+        .task-item { display: flex; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); transition: 0.3s; }
+        .task-item:hover { background: rgba(255,255,255,0.07); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div style="font-weight: 600; color: var(--accent); font-size: 1.4rem; margin-bottom: 40px;">O</div>
+    <div class="nav-item active" onclick="showView('focus', this)">⏱</div>
+    <div class="nav-item" onclick="showView('todo', this)">✓</div>
+    <div class="nav-item" onclick="showView('diary', this)">✍</div>
+    <div class="nav-item" onclick="showView('music', this)">♫</div>
+    <div class="nav-item" onclick="showView('stats', this)">📊</div>
+    <div class="nav-item" onclick="changeBg()" style="margin-top: auto; font-size: 1.2rem;">🎨</div>
+</nav>
+
+<main>
+    <div id="header-clock">00:00:00</div>
+
+    <div id="focus" class="section active-view">
+        <h1>Onward Focus</h1>
+        <div class="glass-card" style="text-align: center;">
+            <div style="margin-bottom: 20px;">
+                <button class="btn" style="background:transparent; border:1px solid var(--accent)" onclick="setMode('pomodoro')">Pomodoro</button>
+                <button class="btn" style="background:transparent; border:1px solid var(--accent)" onclick="setMode('stopwatch')">Stopwatch</button>
+            </div>
+            <div class="timer-display" id="display">25:00</div>
+            <button class="btn" id="startBtn" onclick="toggleTimer()">Start Session</button>
+            <button class="btn" style="background:transparent" onclick="resetTimer()">Reset</button>
+            <div style="margin-top: 30px;">🔥 Daily Streak: <span id="streak">4</span> Days</div>
+            <div style="margin-top: 20px; font-size: 0.8rem; opacity: 0.6;">
+                Config Focus: <input type="number" id="cfgF" value="25" style="width:50px; padding:2px;" onchange="resetTimer()"> mins
+            </div>
+        </div>
+    </div>
+
+    <div id="todo" class="section">
+        <h1>Priorities & Notes</h1>
+        <div class="glass-card">
+            <h3>Tasks</h3>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <input type="text" id="tIn" placeholder="Enter task..." style="flex:1">
+                <button class="btn" onclick="addTask()">Add</button>
+            </div>
+            <div id="tList"></div>
+        </div>
+        <div class="glass-card">
+            <h3>Quick Notepad</h3>
+            <textarea style="width:100%; height:150px; background:transparent;" placeholder="Random ideas go here..."></textarea>
+        </div>
+    </div>
+
+    <div id="diary" class="section">
+        <h1>Handwritten Diary</h1>
+        <div class="glass-card" style="background: rgba(255,255,255,0.05);">
+            <textarea class="diary-textarea" placeholder="Dear Diary, today was..."></textarea>
+        </div>
+    </div>
+
+    <div id="music" class="section">
+        <h1>Atmosphere</h1>
+        <div class="glass-card" style="text-align: center;">
+            <p>Load your background tracks</p>
+            <input type="file" accept="audio/*" onchange="document.getElementById('aud').src=URL.createObjectURL(event.target.files[0]);document.getElementById('aud').play()">
+            <audio id="aud" controls style="width:100%; margin-top:30px; filter: invert(1); opacity: 0.5;"></audio>
+        </div>
+    </div>
+
+    <div id="stats" class="section">
+        <h1>Performance</h1>
+        <div class="glass-card">
+            <p>Time spent focusing: <span id="stat-f" style="color:var(--accent)">0</span> minutes</p>
+            <p>Time app was open: <span id="stat-o" style="color:var(--accent)">0</span> minutes</p>
+        </div>
+    </div>
+</main>
+
+<script>
+    let time = 1500, isRunning = false, timerInt, mode = 'pomodoro', stopwatchTime = 0;
+    let focusMins = 0, openMins = 0;
+
+    // View Switcher
+    function showView(id, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-view'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(id).classList.add('active-view');
+        el.classList.add('active');
+    }
+
+    // Clock & Stats Tracking
+    setInterval(() => {
+        document.getElementById('header-clock').innerText = new Date().toLocaleTimeString();
+        openMins += (1/60);
+        document.getElementById('stat-o').innerText = Math.floor(openMins);
+    }, 1000);
+
+    // Timer Logic
+    function setMode(m) { mode = m; resetTimer(); }
+    function toggleTimer() {
+        isRunning = !isRunning;
+        document.getElementById('startBtn').innerText = isRunning ? 'Pause' : 'Start Session';
+        if(isRunning) {
+            timerInt = setInterval(() => {
+                if(mode === 'pomodoro') { 
+                    time--; if(time <= 0) clearInterval(timerInt); 
+                    focusMins += (1/60);
+                } else { 
+                    stopwatchTime++; 
+                    focusMins += (1/60);
+                }
+                updateDisplay();
+                document.getElementById('stat-f').innerText = Math.floor(focusMins);
+            }, 1000);
+        } else { clearInterval(timerInt); }
+    }
+
+    function resetTimer() {
+        clearInterval(timerInt); isRunning = false;
+        document.getElementById('startBtn').innerText = 'Start Session';
+        time = document.getElementById('cfgF').value * 60;
+        stopwatchTime = 0; updateDisplay();
+    }
+
+    function updateDisplay() {
+        let t = mode === 'pomodoro' ? time : stopwatchTime;
+        let m = Math.floor(t / 60), s = t % 60;
+        document.getElementById('display').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+    }
+
+    function addTask() {
+        const i = document.getElementById('tIn'), l = document.getElementById('tList');
+        if(!i.value) return;
+        const div = document.createElement('div'); div.className='task-item';
+        div.innerHTML = `<span>${i.value}</span><span onclick="this.parentElement.remove()" style="color:red; cursor:pointer">×</span>`;
+        div.onclick = () => div.style.opacity = '0.3';
+        l.appendChild(div); i.value = '';
+    }
+
+    let bgIndex = 0;
+    function changeBg() {
+        const bgs = ['#090613', '#1a0933', '#050a14', '#14050a'];
+        bgIndex = (bgIndex + 1) % bgs.length;
+        document.body.style.background = bgs[bgIndex];
+    }
+</script>
+</body>
+</html>
